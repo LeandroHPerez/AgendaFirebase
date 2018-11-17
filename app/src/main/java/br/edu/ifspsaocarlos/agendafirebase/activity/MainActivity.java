@@ -233,7 +233,14 @@ public class MainActivity extends AppCompatActivity{
              //EXERCICIO: insira aqui o código para buscar somente os contatos que atendam
             //           ao criterio de busca digitado pelo usuário na SearchView.
 
+            query= databaseReference.orderByChild("nome").equalTo(nomeContato);
+            options = new FirebaseRecyclerOptions.Builder<Contato>().setQuery(query, Contato.class).build();
 
+            adapter = new ContatoAdapter(options);
+            recyclerView.setAdapter(adapter);
+            adapter.startListening();
+
+            fab.show();
 
         }
 
