@@ -21,10 +21,13 @@ import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.firebase.ui.database.FirebaseRecyclerOptions;
@@ -34,6 +37,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import br.edu.ifspsaocarlos.agendafirebase.R;
 import br.edu.ifspsaocarlos.agendafirebase.adapter.ContatoAdapter;
@@ -56,6 +62,8 @@ public class MainActivity extends AppCompatActivity{
     private DatabaseReference databaseReference;
     private Query query;
     private FirebaseRecyclerOptions<Contato> options;
+
+    List<String> listaCategorias = new ArrayList<String>();
 
 
     @Override
@@ -110,6 +118,8 @@ public class MainActivity extends AppCompatActivity{
         recyclerView.setLayoutManager(layout);
 
 
+
+
         databaseReference = FirebaseDatabase.getInstance().getReference();
 
 
@@ -145,6 +155,10 @@ public class MainActivity extends AppCompatActivity{
 
 
 
+        listaCategorias.add("Amigo");
+        listaCategorias.add("Família");
+        listaCategorias.add("Trabalho");
+        listaCategorias.add("Outro");
 
     }
 
@@ -233,6 +247,7 @@ public class MainActivity extends AppCompatActivity{
              //EXERCICIO: insira aqui o código para buscar somente os contatos que atendam
             //           ao criterio de busca digitado pelo usuário na SearchView.
 
+            // a) Busca pelo nome do contato
             query= databaseReference.orderByChild("nome").equalTo(nomeContato);
             options = new FirebaseRecyclerOptions.Builder<Contato>().setQuery(query, Contato.class).build();
 
@@ -326,6 +341,84 @@ public class MainActivity extends AppCompatActivity{
         adapter.stopListening();
 
     }
+
+
+
+    //c) Na MainActivity, acrescente mais um item no menu para permitir filtrar contatos
+    //pelo grupo a qual pertence (Amigo, Família, Trabalho, Outro)
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.todos:
+
+                //listaCategorias.add("Amigo");
+                //listaCategorias.add("Família");
+                //listaCategorias.add("Trabalho");
+               // listaCategorias.add("Outro");
+
+                updateUI_Categorias("todos");
+                return true;
+
+            case R.id.amigos:
+                updateUI_Categorias(listaCategorias.get(0));
+                return true;
+
+                case R.id.familia:
+                updateUI_Categorias(listaCategorias.get(1));
+                return true;
+
+                case R.id.trabalho:
+                updateUI_Categorias(listaCategorias.get(2));
+                return true;
+
+                case R.id.outro:
+                updateUI_Categorias(listaCategorias.get(3));
+                return true;
+
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+
+//c) Na MainActivity, acrescente mais um item no menu para permitir filtrar contatos
+//pelo grupo a qual pertence (Amigo, Família, Trabalho, Outro)
+    private void updateUI_Categorias(String categoriaPesquisa) {
+
+        for (String categoria : listaCategorias){
+            if (categoriaPesquisa.equals(categoria)) {
+
+                // c)  filtrar contatos pelo grupo a qual pertence (Amigo, Família, Trabalho, Outro)
+                query= databaseReference.orderByChild("nome").equalTo(categoriaPesquisa);
+                options = new FirebaseRecyclerOptions.Builder<Contato>().setQuery(query, Contato.class).build();
+
+                adapter = new ContatoAdapter(options);
+                recyclerView.setAdapter(adapter);
+                adapter.startListening();
+
+                fab.show();
+
+            }
+            else { //faz busca padrão caso seja passado uma categoria inválida na chama do método
+                query= databaseReference.orderByChild("nome");
+                options = new FirebaseRecyclerOptions.Builder<Contato>().setQuery(query, Contato.class).build();
+
+                adapter = new ContatoAdapter(options);
+                recyclerView.setAdapter(adapter);
+                adapter.startListening();
+
+
+                empty.setText(getResources().getString(R.string.lista_vazia));
+                fab.show();
+            }
+        }
+
+    }
+
+
+
+
 
 
 }
