@@ -85,6 +85,7 @@ public class MainActivity extends AppCompatActivity{
         handleIntent(intent);
     }
 
+    //Intent da pesquisa
     private void handleIntent(Intent intent) {
         if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
             String query = intent.getStringExtra(SearchManager.QUERY);
@@ -239,6 +240,9 @@ public class MainActivity extends AppCompatActivity{
 
 
             empty.setText(getResources().getString(R.string.lista_vazia));
+
+            adicionarListenerMensagemListaVazia(query);
+
             fab.show();
         }
         else {
@@ -253,7 +257,11 @@ public class MainActivity extends AppCompatActivity{
 
             adapter = new ContatoAdapter(options);
             recyclerView.setAdapter(adapter);
+
             adapter.startListening();
+
+            //Mostrar mensagem de lista inválida
+            adicionarListenerMensagemListaVazia(query);
 
             fab.show();
 
@@ -357,7 +365,7 @@ public class MainActivity extends AppCompatActivity{
                 //listaCategorias.add("Trabalho");
                // listaCategorias.add("Outro");
 
-                updateUI_Categorias("todos");
+                updateUI(null); //faz a busca padrão da tela
                 return true;
 
             case R.id.amigos:
@@ -390,7 +398,7 @@ public class MainActivity extends AppCompatActivity{
             if (categoriaPesquisa.equals(categoria)) {
 
                 // c)  filtrar contatos pelo grupo a qual pertence (Amigo, Família, Trabalho, Outro)
-                query= databaseReference.orderByChild("nome").equalTo(categoriaPesquisa);
+                query= databaseReference.orderByChild("categoria").equalTo(categoriaPesquisa);
                 options = new FirebaseRecyclerOptions.Builder<Contato>().setQuery(query, Contato.class).build();
 
                 adapter = new ContatoAdapter(options);
@@ -399,20 +407,40 @@ public class MainActivity extends AppCompatActivity{
 
                 fab.show();
 
-            }
-            else { //faz busca padrão caso seja passado uma categoria inválida na chama do método
-                query= databaseReference.orderByChild("nome");
-                options = new FirebaseRecyclerOptions.Builder<Contato>().setQuery(query, Contato.class).build();
 
-                adapter = new ContatoAdapter(options);
-                recyclerView.setAdapter(adapter);
-                adapter.startListening();
+                //Mostrar mensagem de lista inválida
+                adicionarListenerMensagemListaVazia(query);
 
 
-                empty.setText(getResources().getString(R.string.lista_vazia));
-                fab.show();
+                break; //se achou sai do for
             }
         }
+
+
+
+
+
+
+    }
+
+
+    private void adicionarListenerMensagemListaVazia(Query query) {
+        query.addValueEventListener(new ValueEventListener() {
+
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                progressBar.setVisibility(View.GONE);
+                if (dataSnapshot.getChildrenCount()==0)
+                    empty.setVisibility(View.VISIBLE);
+                else
+                    empty.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
 
     }
 

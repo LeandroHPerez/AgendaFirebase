@@ -32,6 +32,7 @@ public class DetalheActivity extends AppCompatActivity implements AdapterView.On
     private DatabaseReference databaseReference;
     String FirebaseID;
     private Spinner spinnerTipoContato;
+    List<String> categorias = new ArrayList<String>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,6 +78,9 @@ public class DetalheActivity extends AppCompatActivity implements AdapterView.On
 
                         EditText emailText = (EditText) findViewById(R.id.editTextEmail);
                         emailText.setText(c.getEmail());
+
+                        //Seleciona o item do spinner pelo texto retornado
+                        spinnerTipoContato.setSelection(categorias.indexOf(c.getCategoria()));
 
                     }
                 }
@@ -133,20 +137,27 @@ public class DetalheActivity extends AppCompatActivity implements AdapterView.On
         String fone = ((EditText) findViewById(R.id.editTextFone)).getText().toString();
         String email = ((EditText) findViewById(R.id.editTextEmail)).getText().toString();
 
-        if (c==null) {
+        String categoria = spinnerTipoContato.getSelectedItem().toString();
+
+
+        if (c==null) { //Cria um novo reg
             c = new Contato();
 
             c.setNome(name);
             c.setFone(fone);
             c.setEmail(email);
-            databaseReference.push().setValue(c);
 
+            c.setCategoria(categoria);
+
+            databaseReference.push().setValue(c);
         }
-        else
+        else  //Atualiza reg
         {
             c.setNome(name);
             c.setFone(fone);
             c.setEmail(email);
+
+            c.setCategoria(categoria);
 
             databaseReference.child(FirebaseID).setValue(c);
 
@@ -170,7 +181,7 @@ public class DetalheActivity extends AppCompatActivity implements AdapterView.On
 
 
     private void configurarSpinnerTipoContato(Spinner spinnerCategorias){
-        List<String> categorias = new ArrayList<String>();
+
         categorias.add("Amigo");
         categorias.add("Família");
         categorias.add("Trabalho");
